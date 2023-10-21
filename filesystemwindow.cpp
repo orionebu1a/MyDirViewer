@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QString>
 #include <QSortFilterProxyModel>
+#include <QThread>
 #include "filesystemwindow.h"
 
 FileSystemWindow::FileSystemWindow(QDir::Filters filters, QString rootPath, QWidget* parent) : QMainWindow(parent){
@@ -32,39 +33,44 @@ FileSystemWindow::FileSystemWindow(QDir::Filters filters, QString rootPath, QWid
     verticalLayout->addWidget(tree);
     QWidget * window = new QWidget();
     window->setLayout(verticalLayout);
-
-    filteredModel = new QSortFilterProxyModel;
-    filteredModel->setSourceModel(model);
+    myFilteredModel = new MyFilterModel;
+    myFilteredModel->setSourceModel(model);
 
     path = rootPath;
 
-    QObject::connect(lineEdit, &QLineEdit::textChanged,
-     [&] (QString text) {
+    QObject::connect(lineEdit, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
 
-        filteredModel->setFilterWildcard(text);
-
-        model->setRootPath(path);
-
-        if (!path.isEmpty()) {
-            auto rootIndex = model->index(path);
-            auto proxyIndex = filteredModel->mapFromSource(rootIndex);
-            if (proxyIndex.isValid())
-                tree->setRootIndex(proxyIndex);
-        }
-        tree->setModel(filteredModel);
-        });
-
-    tree->setModel(filteredModel);
+    tree->setModel(myFilteredModel);
 
     if (!path.isEmpty()) {
         auto rootIndex = model->index(path);
-        auto proxyIndex = filteredModel->mapFromSource(rootIndex);
+        auto proxyIndex = myFilteredModel->mapFromSource(rootIndex);
         if (proxyIndex.isValid())
             tree->setRootIndex(proxyIndex);
     }
-    setCentralWidget(window);
 
+    setCentralWidget(window);
 }
+
+void FileSystemWindow::update(QString text){
+    model->setRootPath(path);
+
+    if (!path.isEmpty()) {
+        auto rootIndex = model->index(path);
+        auto proxyIndex = myFilteredModel->mapFromSource(rootIndex);
+        if (proxyIndex.isValid())
+            tree->setRootIndex(proxyIndex);
+        else{
+            myFilteredModel->setFilterRegExp("");
+            proxyIndex = myFilteredModel->mapFromSource(rootIndex);
+            tree->setRootIndex(proxyIndex);
+        }
+    }
+
+    myFilteredModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    myFilteredModel->setFilterRegExp(text);
+}
+
 
 
 

@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QString>
 #include <QSortFilterProxyModel>
+#include "myfiltermodel.h"
 
 class FileSystemWindow : public QMainWindow
 {
@@ -14,10 +15,13 @@ class FileSystemWindow : public QMainWindow
 public:
     FileSystemWindow(QDir::Filters filters, QString rootPath, QWidget* parent = 0);
     QSortFilterProxyModel * filteredModel;
+    MyFilterModel * myFilteredModel;
     QFileSystemModel * model;
     QTreeView * tree;
     QLineEdit * lineEdit;
     QString path;
+public slots:
+    void update(QString text);
 };
 
 #endif // FILESYSTEMWINDOW_H

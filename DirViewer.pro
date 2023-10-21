@@ -18,11 +18,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     filesystemwindow.cpp \
     main.cpp \
-    nameproxymodel.cpp
+    myfiltermodel.cpp
 
 HEADERS += \
     filesystemwindow.h \
-    nameproxymodel.h
+    myfiltermodel.h
 
 FORMS +=
 
