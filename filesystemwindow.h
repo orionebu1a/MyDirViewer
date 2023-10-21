@@ -13,9 +13,11 @@ class FileSystemWindow : public QMainWindow
     Q_OBJECT
 public:
     FileSystemWindow(QDir::Filters filters, QString rootPath, QWidget* parent = 0);
+    QSortFilterProxyModel * filteredModel;
     QFileSystemModel * model;
     QTreeView * tree;
     QLineEdit * lineEdit;
+    QString path;
 };
 
 #endif // FILESYSTEMWINDOW_H

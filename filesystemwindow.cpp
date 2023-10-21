@@ -16,18 +16,8 @@ FileSystemWindow::FileSystemWindow(QDir::Filters filters, QString rootPath, QWid
 
     model = new QFileSystemModel;
     tree = new QTreeView;
-
-    model->setRootPath(rootPath);
     model->setFilter(filters);
-
-    tree->setModel(model);
-    model->setNameFilterDisables(false);
-
-    if (!rootPath.isEmpty()) {
-        const auto rootIndex = model->index(QDir::cleanPath(rootPath));
-        if (rootIndex.isValid())
-            tree->setRootIndex(rootIndex);
-    }
+    model->setRootPath(rootPath);
 
     tree->setAnimated(false);
     tree->setIndentation(20);
@@ -43,11 +33,38 @@ FileSystemWindow::FileSystemWindow(QDir::Filters filters, QString rootPath, QWid
     QWidget * window = new QWidget();
     window->setLayout(verticalLayout);
 
-    QObject::connect(lineEdit, &QLineEdit::textChanged,
-          [&] (QString text) { model->setNameFilters({"*" + text + "*"}); });
+    filteredModel = new QSortFilterProxyModel;
+    filteredModel->setSourceModel(model);
 
+    path = rootPath;
+
+    QObject::connect(lineEdit, &QLineEdit::textChanged,
+     [&] (QString text) {
+
+        filteredModel->setFilterWildcard(text);
+
+        model->setRootPath(path);
+
+        if (!path.isEmpty()) {
+            auto rootIndex = model->index(path);
+            auto proxyIndex = filteredModel->mapFromSource(rootIndex);
+            if (proxyIndex.isValid())
+                tree->setRootIndex(proxyIndex);
+        }
+        tree->setModel(filteredModel);
+        });
+
+    tree->setModel(filteredModel);
+
+    if (!path.isEmpty()) {
+        auto rootIndex = model->index(path);
+        auto proxyIndex = filteredModel->mapFromSource(rootIndex);
+        if (proxyIndex.isValid())
+            tree->setRootIndex(proxyIndex);
+    }
     setCentralWidget(window);
 
 }
+
 
 
